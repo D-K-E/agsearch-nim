@@ -53,3 +53,8 @@ proc getNodeVal*[T](n: JsonNode): T {.raises: ValueError.} =
         return n.getBool()
     else:
         raise newException(ValueError, "wrong type of json node ")
+
+
+proc eqMatch*[T](e1, e2: T): bool = e1 == e2
+proc inMatch*[T](e1, e2: T): bool = e1 in e2
+

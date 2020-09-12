@@ -1,9 +1,10 @@
 ## implements a simple text helpers
 import json
 import utils
+import constants
 import strutils
-import streams
 import system # readfile
+import os
 
 type
     TextInfo* = object
@@ -19,11 +20,11 @@ type
         localPath*: string
         hasChunks*: bool
 
-proc toText(info: TextInfo): Text =
+proc toText*(info: TextInfo): Text =
     ## read text from local info if hasChunks
     ## separate it using chunkSeparator
     ## else read the whole text blob into text chunks
-    var txt = readFile(info.localPath)
+    var txt = readFile(joinPath(dataDir, info.localPath))
     var chunks: seq[string]
     if info.hasChunks:
         chunks = txt.split(info.chunkSeparator)
@@ -37,6 +38,10 @@ proc toText(info: TextInfo): Text =
 proc toJson(info: TextInfo): JsonNode =
     return %*info
 
+proc `$`*(info: TextInfo): string =
+    return $(toJson(info))
+
+
 proc fromJson(node: JsonNode): TextInfo =
     return TextInfo(
             localPath: getStr(node["localPath"]),
@@ -46,11 +51,19 @@ proc fromJson(node: JsonNode): TextInfo =
             chunkSeparator: getStr(node["chunkSeparator"])
     )
 
-proc fetchInfoById(id: string): TextInfo =
-    let db = getTextInfoDB()
-    var node = db[id]
+proc makeInfoFromNode(id: string, node: JsonNode): TextInfo =
     node.add("id", newJString(id))
     return fromJson(node)
+
+proc fetchInfos*(): seq[TextInfo] =
+    let db = getTextInfoDB()
+    for id, node in db.pairs():
+        result.add(makeInfoFromNode(id, node))
+
+proc fetchInfoById*(id: string): TextInfo =
+    let db = getTextInfoDB()
+    var node = db[id]
+    return makeInfoFromNode(id, node)
 
 proc fetchInfoByComponents[T](
     compName: string,
@@ -74,8 +87,6 @@ proc fetchInfoByComponent[T](compName, compVal: T,
         raise newException(ValueError, "value not found int db")
     result = infos[0]
 
-proc eqMatch[T](e1, e2: T): bool = e1 == e2
-proc inMatch[T](e1, e2: T): bool = e1 in e2
 
 proc fetchInfoByPath(path: string): TextInfo =
     return fetchInfoByComponent[string]("localPath", path, eqMatch[string])

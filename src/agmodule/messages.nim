@@ -47,6 +47,23 @@ proc printFilterSearchTerms*(terms, sep: string): seq[string] =
             echo("\t"&term)
             result.add(term)
 
-
-
-
+proc chooseSearchInterface*(): int {.raises: [ValueError, IOError].} =
+    echo("")
+    echo("Please choose your search interface")
+    echo("Available ones are:")
+    echo("")
+    echo("\t1. Simple Boolean Search")
+    echo("\t2. Smart TF-IDF Search")
+    echo("")
+    echo("Now enter your choice")
+    var userChoice: string
+    let isRead: bool = readLine(stdin, userChoice)
+    let choice = parseInt(userChoice)
+    echo(userChoice)
+    if choice == 1:
+        result = choice
+    elif choice == 2:
+        result = choice
+    else:
+        raise newException(ValueError,
+        "Choice should be" & "either 1 or 2")
