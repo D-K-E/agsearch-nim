@@ -20,6 +20,7 @@ type
         localPath*: string
         hasChunks*: bool
 
+
 proc toText*(info: TextInfo): Text =
     ## read text from local info if hasChunks
     ## separate it using chunkSeparator

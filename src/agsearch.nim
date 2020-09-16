@@ -8,10 +8,13 @@ import agmodule/text
 import agmodule/searchmanager
 import agmodule/simplesearch
 import agmodule/tfidfsearch
+import agmodule/tfidf
 
 import os # paramCount
 import threadpool
 import strutils
+import tables
+import sets
 
 let debug = true
 
@@ -40,18 +43,18 @@ when isMainModule:
             raise newException(ValueError, "Unknown searcher choice")
         var results: seq[TextInfo]
         for info in infos:
-            case manager.kind
-            of skBoolean:
+            if manager.kind == skBoolean:
                 let searcher = SimpleSearch(info: info,
                                             terms: terms)
                 if simpleInSearch(searcher):
                     results.add(info)
-            of skTfIdf:
-                let searcher = TFIdfSearch(info: info,
-                                           terms: terms)
 
+        var tfs: Table[string, seq[TfIdfTerm]]
+        if manager.kind == skTfIdf:
+            var termSet = toHashSet(terms)
+            tfs = getTfIdfTerms(termSet, sep = " ",
+                                infos = infos)
         if debug:
             echo(terms)
             echo($(results))
-
-
+            echo($(tfs))
